@@ -17,5 +17,7 @@ catalog=json.loads((dist/'catalog.json').read_text())
 assert len(catalog['lessons'])==10 and len(catalog['diagnostics'])==9 and len(catalog['program'])==30
 assert len({x['id'] for x in catalog['lessons']})==10
 assert len(catalog['mentors'])==9
+assert len(catalog['beginner_program'])==30
+assert sum(d['readiness']=='ready' for d in catalog['beginner_program'])==5
 assert all('expected' not in x for x in catalog['lessons'])
 print('PASS: 8 allowlisted files, project-relative assets, public key only, stable materials; no learner data')
