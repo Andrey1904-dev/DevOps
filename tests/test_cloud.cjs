@@ -5,7 +5,7 @@ const {spawnSync}=require('node:child_process');
 const r=spawnSync('python3',['-B','-c','import json; from content import public_catalog; from academy import initial_state; print(json.dumps(dict(catalog=public_catalog(),state=initial_state())))'],{encoding:'utf8'});
 assert.equal(r.status,0,r.stderr);const fixture=JSON.parse(r.stdout);
 const storage=new Map(), handlers={}, elements={'#app':{innerHTML:''},'#notice':{innerHTML:''},'.topbar .pill':{},'.sidebar-bottom':{}};
-let calls=[],networkFailure=false,conflict=false,remoteState=structuredClone(fixture.state),rev=0;
+let calls=[],networkFailure=false,conflict=false,refreshDenied=false,remoteState=structuredClone(fixture.state),rev=0;
 const ctx={console,URL,URLSearchParams,TextEncoder,Date,crypto:webcrypto,btoa:s=>Buffer.from(s,'binary').toString('base64'),
  location:{href:'https://andrey1904-dev.github.io/DevOps/#home',origin:'https://andrey1904-dev.github.io',pathname:'/DevOps/',hash:'#home'},
  history:{replaceState:()=>{}},
@@ -17,7 +17,7 @@ const ctx={console,URL,URLSearchParams,TextEncoder,Date,crypto:webcrypto,btoa:s=
   let data={},status=200;
   if(url==='./catalog.json')return {ok:true,json:async()=>fixture.catalog};
   if(url.includes('grant_type=password'))data={access_token:'synthetic_access',refresh_token:'synthetic_refresh',expires_in:3600,user:{id:'synthetic_user'}};
-  else if(url.includes('grant_type=refresh_token'))data={access_token:'synthetic_refreshed',refresh_token:'synthetic_refresh2',expires_in:3600,user:{id:'synthetic_user'}};
+  else if(url.includes('grant_type=refresh_token')){if(refreshDenied){status=400;data={message:'refresh denied'};}else data={access_token:'synthetic_refreshed',refresh_token:'synthetic_refresh2',expires_in:3600,user:{id:'synthetic_user'}};}
   else if(url.endsWith('/rpc/academy_load'))data={state:remoteState,revision:rev};
   else if(url.endsWith('/rpc/academy_action')){
    const p=JSON.parse(opts.body);if(conflict||p.expected_revision!==rev){status=409;data={code:'40001',message:'stale revision'};}
@@ -43,12 +43,18 @@ const cloud=ctx.AcademyCloud;
   const p=await cloud.api('/api/mentor-context?mentor='+role);check(p.prompt.includes(role)&&p.prompt.includes('недоверенные данные'));
  }
  conflict=true;await assert.rejects(()=>cloud.api('/api/action/note',{text:'not saved'}),/stale/);n++;conflict=false;check(remoteState.notes.length===1);
- networkFailure=true;await assert.rejects(()=>cloud.api('/api/state'),/Нет связи/);n++;networkFailure=false;
+ networkFailure=true;await assert.rejects(()=>cloud.api('/api/state'),/Нет связи/);n++;
+ await assert.rejects(()=>cloud.api('/api/export'),/Нет связи/);n++;networkFailure=false;
+ remoteState.notes.push({text:'Synthetic change from another tab',at:new Date().toISOString()});
+ check((await cloud.api('/api/export')).state.notes.length===2);
  // Restore a prior browser session; no new password call on remount.
  const before=calls.filter(x=>x.url.includes('grant_type=password')).length;
  await cloud.mount(()=>{},()=>{});await cloud.api('/api/state');check(calls.filter(x=>x.url.includes('grant_type=password')).length===before);
  let key=[...storage.keys()].find(k=>k.endsWith(':session:v1'));let saved=JSON.parse(storage.get(key));saved.expires_at=0;storage.set(key,JSON.stringify(saved));
  await cloud.mount(()=>{},()=>{});check(calls.some(x=>x.url.includes('grant_type=refresh_token')));
+ saved=JSON.parse(storage.get(key));saved.expires_at=0;storage.set(key,JSON.stringify(saved));refreshDenied=true;
+ await cloud.mount(()=>{},()=>{});check(!storage.has(key));
+ await assert.rejects(()=>cloud.api('/api/export'),/Войдите/);n++;refreshDenied=false;
  ctx.FormData=class {constructor(){return new Map([['email','synthetic@example.invalid']]);}};
  await handlers.submit({target:{closest:()=>({...form,dataset:{auth:'magic'}})},preventDefault:()=>{}});
  const otp=calls.find(x=>x.url.includes('/auth/v1/otp?'));const payload=JSON.parse(otp.opts.body);
