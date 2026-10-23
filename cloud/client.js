@@ -32,7 +32,7 @@
   if(session.expires_at*1000>Date.now()+60000)return session;
   if(!refreshing)refreshing=request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:session.refresh_token}})
    .then(value=>{storeSession(value);return session;}).catch(error=>{
-    if(error.status===400||error.status===401){session=null;localStorage.removeItem(storageKey);resetter?.();login(error.message);}
+    if(error.status===400||error.status===401){session=null;snapshot=null;revision=null;localStorage.removeItem(storageKey);resetter?.();login(error.message);}
     throw error;
    }).finally(()=>{refreshing=null;});
   return refreshing;
@@ -73,7 +73,7 @@ ${JSON.stringify({stage:summary(snapshot).stage,item:safeItem,attempts,
   }
   if(!catalog)await api('/api/catalog');
   if(path==='/api/state'){const r=await rpc('academy_load');snapshot=r.state;revision=r.revision;return {state:snapshot,summary:summary(snapshot),csrf:'cloud-rpc-authenticated'};}
-  if(path==='/api/export'){if(!snapshot)await api('/api/state');return {format:'academy-export',version:1,exported_at:new Date().toISOString(),state:snapshot};}
+  if(path==='/api/export'){await api('/api/state');return {format:'academy-export',version:1,exported_at:new Date().toISOString(),state:snapshot};}
   if(path.startsWith('/api/mentor-context?')){if(!snapshot)await api('/api/state');return {prompt:mentorContext(new URLSearchParams(path.split('?')[1]))};}
   if(path.startsWith('/api/action/')){
    if(revision===null)await api('/api/state');
