@@ -245,7 +245,7 @@ begin
  insert into public.academy_profiles(user_id) values(uid) on conflict do nothing;
  insert into public.academy_settings(user_id) values(uid) on conflict do nothing;
  insert into public.academy_state(user_id,body) values(uid,academy_private.initial_state()) on conflict do nothing;
- select body,revision into s,rev from public.academy_state where user_id=uid;
+ select body,revision into s,rev from public.academy_state where user_id=uid for update;
  perform academy_private.project_state(uid,s);
  return jsonb_build_object('state',s,'revision',rev);
 end $$;
