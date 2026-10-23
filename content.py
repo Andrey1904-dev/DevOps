@@ -1,7 +1,9 @@
 """Versioned learning materials. All labs are text-only simulations."""
 from copy import deepcopy
 
-VERSION = 1
+from curriculum import BEGINNER_PROGRAM, PROGRAM_VERSION, enrich
+
+VERSION = 2
 MENTORS = {
     'academy_lead': 'Координатор Academy', 'linux_mentor': 'Linux Mentor',
     'networking_mentor': 'Networking Mentor', 'automation_mentor': 'Automation Mentor',
@@ -91,6 +93,7 @@ LESSONS = [
            ['Верный итог и ход итераций', 'Объяснено условие'], ['Прибавлять все элементы, игнорируя условие'],
            'Повторите на другом списке и с другим порогом.'),
 ]
+enrich(LESSONS)
 BY_ID = {x['id']: x for x in LESSONS}
 
 DIAGNOSTICS = [
@@ -122,4 +125,4 @@ def public_catalog():
     for item in lessons:
         item.pop('expected',None)
     return dict(version=VERSION, lessons=lessons, diagnostics=DIAGNOSTICS,
-                mentors=MENTORS, program=DEFAULT_PROGRAM)
+                mentors=MENTORS, program=DEFAULT_PROGRAM, beginner_program=BEGINNER_PROGRAM, program_version=PROGRAM_VERSION)

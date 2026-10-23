@@ -3,3 +3,6 @@
 @media(min-width:1400px){main{padding:0 65px}.hero{padding-top:30px}}
 @media(max-width:1050px){.sidebar{width:215px;padding:26px 15px}main{margin-left:215px;padding:0 24px}.hero-grid{grid-template-columns:1fr}.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.sidebar{position:static;width:100%;padding:18px;border-right:0;border-bottom:1px solid var(--line)}.brand{font-size:1.2rem}.nav-label,.sidebar-bottom{display:none}nav{display:flex;overflow-x:auto;margin-top:18px;gap:4px}nav a{white-space:nowrap;font-size:12px;padding:8px 11px}nav a span{display:none}main{margin:0;padding:0 18px}.topbar{font-size:8px;margin-bottom:22px;gap:10px}.grid,.grid.three{grid-template-columns:1fr}.card{padding:20px}.stats{gap:9px}.stat{padding:14px}.day{grid-template-columns:34px minmax(0,1fr)}.day>div:last-child{grid-column:2}.hero{padding-top:4px}.actions>*{flex:1 1 auto}.topbar .pill{font-size:9px}h1{font-size:2rem}}
+
+/* Route and curriculum details keep long content within narrow screens. */
+.route-choices{margin:24px 0}.day>div{min-width:0}.day details{margin:12px 0;overflow-wrap:anywhere}.day details p{font-size:14px}.list-line{gap:12px;flex-wrap:wrap}pre{overflow-wrap:anywhere}button{white-space:normal}.route-choices button{width:100%}

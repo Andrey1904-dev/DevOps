@@ -20,7 +20,14 @@ setImmediate(()=>{
  function page(hash,contains){ctx.location.hash=hash;run('render()');assert.ok(elements['#app'].innerHTML.includes(contains),hash);checks++;return elements['#app'].innerHTML;}
  for(const [route,title] of Object.entries({home:'Понимать.',diagnostic:'Начать только по вашему решению',program:'30 дней',lessons:'Учебные материалы',labs:'Лаборатории без риска',mentors:'Специализация под конкретную задачу',progress:'Прогресс опирается на попытки',settings:'Понятное хранение'}))page('#'+route,title);
  for(const lesson of data.catalog.lessons)page('#lesson/'+lesson.id,'Самостоятельная практика');
- assert.equal((page('#program','Сохранить черновик').match(/aria-label="Тема дня/g)||[]).length,30);checks++;
+ assert.equal((page('#program','Сохранить заметки к плану').match(/aria-label="Тема дня/g)||[]).length,30);checks++;
+ run(`state.learning_route='beginner';state.program=catalog.beginner_program;state.program_version=1`);
+ const beginner=page('#program','диагностика не требуется'.replace('диагностика','Диагностика'));
+ assert.ok(!beginner.includes('name="confirmation" required autocomplete="off" disabled'));checks++;
+ assert.ok(beginner.includes('Полный стартовый урок'));checks++;
+ assert.ok(beginner.includes('полный урок ещё не готов'));checks++;
+ page('#home','Я новичок, начать с нуля');page('#diagnostic','Проверить мои знания');
+ for(const key of ['paths','files','read','search','permissions']){const html=page('#lesson/'+key,'Мини-челлендж');assert.ok(html.includes('Техническая основа'));checks++;}
  assert.equal(run(`esc('<img src=x onerror=bad()>')`),'&lt;img src=x onerror=bad()&gt;');checks++;
  run('state.diagnostic_started=true');page('#diagnostic/python','Проследите на бумаге');
  run(`state.diagnostic.python=[{id:'synthetic',at:'2026-10-23T00:00:00Z',answer:'<script>bad()</script>',review:{rating:'support',feedback:'synthetic'}}]`);
